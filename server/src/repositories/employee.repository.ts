@@ -7,6 +7,7 @@ import type {
   Paginated,
   SalaryRecord,
 } from '../domain/types.js';
+import { CURRENT_SALARY_CTE } from './sql.js';
 
 export interface EmployeeFilters {
   search?: string;
@@ -40,20 +41,6 @@ const SORT_EXPR: Record<SortableColumn, string> = {
   hireDate: 'e.hire_date',
   totalCompUsd: 'total_comp_usd',
 };
-
-/**
- * The current salary per employee is the row with the newest effective_date
- * (ties broken by id). Reused by list and detail queries.
- */
-const CURRENT_SALARY_CTE = `
-  WITH ranked AS (
-    SELECT s.*, ROW_NUMBER() OVER (
-      PARTITION BY employee_id ORDER BY effective_date DESC, id DESC
-    ) AS rn
-    FROM salaries s
-  ),
-  current_sal AS (SELECT * FROM ranked WHERE rn = 1)
-`;
 
 // Selects an employee joined with current salary and USD-normalized comp.
 const EMPLOYEE_SELECT = `

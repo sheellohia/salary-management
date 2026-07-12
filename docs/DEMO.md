@@ -49,5 +49,5 @@ docker compose up --build      # open http://localhost:4000
 - Salary is **temporal** — history, not a single column (ADR 0002).
 - All analytics are **USD-normalized in SQL**; medians/percentiles are pure,
   unit-tested functions (ADRs 0003, 0004).
-- 37 backend tests run in <400ms against in-memory SQLite.
+- 66 backend + 23 frontend tests, deterministic, against in-memory SQLite.
 - Ships as a **single container**; CI asserts the seed is exactly 10,000 employees.

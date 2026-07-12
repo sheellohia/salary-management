@@ -42,11 +42,13 @@ layer of pure functions underneath.
   violations to `409`s. `AnalyticsService` turns raw comp rows into the org's
   answers (medians, breakdowns, distribution, pay equity).
 - **repositories/** — the only place that touches SQL. All queries are
-  parameterized. The employee list and analytics use a shared "current salary"
-  CTE (newest `effective_date` wins, ties broken by id).
-- **domain/** — pure currency + statistics helpers (`toUsd`, `median`,
-  `percentile`, …). No I/O, so they are exhaustively unit-tested and reused by
-  both the seed and the services.
+  parameterized. The employee list and analytics import the same "current salary"
+  CTE from `repositories/sql.ts` (newest `effective_date` wins, ties broken by id).
+- **domain/** — pure currency + statistics helpers (`toUsd`, `totalTargetCash`,
+  `median`, `percentile`, …). No I/O, so they are exhaustively unit-tested. The
+  statistics helpers back every analytics breakdown; the currency helpers are the
+  reference spec for the USD math, and a test asserts the SQL expressions agree
+  with them so the two implementations can't drift.
 
 Why this shape: the interesting, get-it-wrong-and-it-matters logic (money math,
 medians, current-salary resolution) is isolated into small pure/DI'd units that

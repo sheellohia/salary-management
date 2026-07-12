@@ -1,5 +1,6 @@
 import type { DB } from '../db/connection.js';
 import type { Gender } from '../domain/types.js';
+import { CURRENT_SALARY_CTE } from './sql.js';
 
 /** A flat, analytics-ready row: one active employee with USD-normalized comp. */
 export interface CompRow {
@@ -27,13 +28,7 @@ export class AnalyticsRepository {
   compRows(status: string = 'active'): CompRow[] {
     return this.db
       .prepare(
-        `WITH ranked AS (
-           SELECT s.*, ROW_NUMBER() OVER (
-             PARTITION BY employee_id ORDER BY effective_date DESC, id DESC
-           ) AS rn
-           FROM salaries s
-         ),
-         current_sal AS (SELECT * FROM ranked WHERE rn = 1)
+        `${CURRENT_SALARY_CTE}
          SELECT
            e.country,
            e.department,

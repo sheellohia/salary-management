@@ -57,8 +57,10 @@ Representative questions the product must answer:
 
 ## 5. Non-functional requirements
 
-- **Performance**: employee list p95 < 150ms at 10k rows; all analytics served by indexed
-  SQL aggregations (no in-app row scans).
+- **Performance**: employee list stays fast at 10k rows via server-side pagination and
+  indexed filters. Analytics push the heavy work — the join, USD normalization and status
+  filter — into a single indexed SQL scan; medians/percentiles are then reduced in-memory
+  over that one result set (see [ADR 0004](./adr/0004-statistics-in-service-layer.md)).
 - **Correctness**: median, currency normalization, and "current salary" resolution are unit-tested.
 - **Determinism**: tests run against in-memory SQLite; seed is reproducible (fixed faker seed).
 - **Maintainability**: layered backend (routes → service → repository), typed end-to-end.

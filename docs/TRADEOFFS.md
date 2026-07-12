@@ -10,7 +10,7 @@ engineering judgment over maximal complexity.*
   and current-salary resolution are the things that are embarrassing to get
   wrong. They live in small pure/DI'd units with hand-computable tests.
 - **Fast, deterministic tests.** In-memory SQLite + fixed seeds → the whole
-  backend suite runs in <400ms with no flakiness.
+  backend suite (66 tests) runs in well under a second with no flakiness.
 - **Readability & a clean seam for growth.** Strict layering means each future
   change (Postgres, auth, audit) has one obvious place to land.
 
@@ -23,7 +23,7 @@ engineering judgment over maximal complexity.*
 | Analytics | One indexed scan returns comp rows already normalized to USD in SQL; grouping/medians reduced in-memory (see ADR 0004). Sub-100ms at this scale. |
 | Currency conversion | Done in SQL via the `exchange_rates` join, not per-row in app code. |
 | Frontend fetching | TanStack Query caches by query key, keeps the previous page visible during refetch, and invalidates precisely after mutations. Search input is debounced (300ms). |
-| Seed | Single transaction + prepared statements → ~40k rows in ~0.2s. |
+| Seed | Single transaction + prepared statements → ~28k rows (10k employees + ~18k salary records) in ~0.2s. |
 
 **Where it stops scaling (and the fix):** the in-memory median approach and
 single-writer SQLite are fine to ~10^5 rows. Beyond that: move to Postgres

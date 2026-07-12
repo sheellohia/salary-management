@@ -56,12 +56,15 @@ Open **http://localhost:4000**.
 ## Tests
 
 ```bash
-npm test                        # backend suite (37 tests, <400ms, deterministic)
-npm run test --workspace web    # frontend suite
+npm test                        # backend suite (66 tests, deterministic, sub-second)
+npm run test --workspace web    # frontend suite (23 tests)
+npm run lint                    # eslint, server + web
 npm run typecheck               # server + web
 ```
 
-Tests run against **in-memory SQLite** with fixed fixtures — fast and repeatable.
+Backend tests run against **in-memory SQLite** with fixed fixtures — fast and
+repeatable. Expected values (payroll totals, medians, percentiles) are
+hand-computed so a green suite means *correct*, not just *self-consistent*.
 
 ## API
 
@@ -79,7 +82,7 @@ Base URL `/api`.
 | GET | `/analytics/overview` | Headcount, total payroll, median, percentiles (USD) |
 | GET | `/analytics/by-country` \| `by-department` \| `by-level` | Grouped headcount/total/avg/median |
 | GET | `/analytics/distribution` | Comp histogram |
-| GET | `/analytics/pay-equity` | Median comp by gender + gap |
+| GET | `/analytics/pay-equity` | Median comp by gender + gap — optional `department`, `level` slice |
 | GET | `/reference` | Countries, departments, levels, enums, FX rates |
 
 Example:
@@ -109,11 +112,16 @@ curl "http://localhost:4000/api/analytics/overview"
 ## Deployment
 
 Ships as a **single container** (API serves the built SPA; SQLite on a volume,
-seeded on first boot).
+seeded on first boot). The image has been built and run end-to-end: it boots,
+seeds 10,000 employees, serves the API and the SPA, and passes `/api/health`.
 
-- **Docker**: `docker compose up --build`
+- **Docker**: `docker compose up --build` → http://localhost:4000
 - **Render**: the included [`render.yaml`](./render.yaml) provisions a Docker web
   service with a persistent disk and `/api/health` health check.
+
+> **Live URL:** `<add your deployed URL here>` — deploy with either command above
+> (Render is one click from this repo). No live instance is committed to the repo
+> by default so there are no credentials or hosting costs baked in.
 
 ## Documentation
 
@@ -125,8 +133,10 @@ seeded on first boot).
 
 ## Demo
 
-A short walkthrough video is in [`docs/DEMO.md`](./docs/DEMO.md) (link) — dashboard →
-filter employees → open an employee → record a raise → see analytics update.
+[`docs/DEMO.md`](./docs/DEMO.md) has a ready-to-record walkthrough script and a
+30-second local run. The flow: dashboard → filter employees → open an employee →
+record a raise → watch the analytics update. Add a recorded video link at the top
+of `docs/DEMO.md` when you record it.
 
 ## License
 

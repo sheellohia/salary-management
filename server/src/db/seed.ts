@@ -9,8 +9,8 @@
  *    normalization in analytics actually meaningful.
  *  - Each employee gets a small salary history (initial + occasional raises),
  *    exercising the temporal salary model.
- *  - Inserts run inside a single transaction with prepared statements — ~40k
- *    rows land in well under a second.
+ *  - Inserts run inside a single transaction with prepared statements — ~28k
+ *    rows (10k employees + ~18k salary records) land in well under a second.
  */
 import { faker } from '@faker-js/faker';
 import { openDatabase, type DB } from './connection.js';
