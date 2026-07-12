@@ -115,9 +115,14 @@ export function seed(db: DB): void {
         .slice(0, 10);
 
       const employeeCode = `ACME-${String(i + 1).padStart(5, '0')}`;
-      const email = faker.internet
-        .email({ firstName, lastName, provider: `acme-${employeeCode.toLowerCase()}.com` })
-        .toLowerCase();
+      // Realistic single-domain address; the numeric suffix guarantees uniqueness
+      // even when two people share a name (also exercises the email UNIQUE index).
+      const localPart = `${firstName}.${lastName}`
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[^a-z0-9]+/g, '.')
+        .replace(/^\.|\.$/g, '');
+      const email = `${localPart}.${i + 1}@acmecorp.com`;
 
       const id = Number(
         insertEmployee.run({

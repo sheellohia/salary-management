@@ -1,7 +1,9 @@
 import path from 'node:path';
 import express, { type Express } from 'express';
 import cors from 'cors';
+import pinoHttp from 'pino-http';
 import type { DB } from './db/connection.js';
+import { logger } from './logger.js';
 import { employeesRouter } from './http/employees.routes.js';
 import { analyticsRouter } from './http/analytics.routes.js';
 import { referenceRouter } from './http/reference.routes.js';
@@ -19,8 +21,17 @@ export interface AppOptions {
  */
 export function createApp(db: DB, options: AppOptions = {}): Express {
   const app = express();
+  // Structured request logging (method/path/status/latency). The shared logger is
+  // disabled under NODE_ENV=test, so this is silent in the test suite. Health
+  // checks are skipped to keep logs signal-rich.
+  app.use(
+    pinoHttp({
+      logger,
+      autoLogging: { ignore: (req) => req.url === '/api/health' },
+    }),
+  );
   app.use(cors());
-  app.use(express.json({ limit: '256kb' }));
+  app.use(express.json({ limit: '1mb' }));
 
   app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
   app.use('/api/employees', employeesRouter(db));

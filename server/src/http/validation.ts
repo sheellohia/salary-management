@@ -9,7 +9,14 @@ const levels = LEVELS as unknown as [string, ...string[]];
 
 const isoDate = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected an ISO date (YYYY-MM-DD)');
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected an ISO date (YYYY-MM-DD)')
+  // Reject syntactically-valid but non-existent calendar dates (e.g. 2026-13-45),
+  // which would otherwise sort lexicographically ABOVE real dates and wrongly
+  // become an employee's "current" salary.
+  .refine((s) => {
+    const d = new Date(`${s}T00:00:00Z`);
+    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+  }, 'Not a valid calendar date');
 
 export const listQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

@@ -114,11 +114,15 @@ export class AnalyticsService {
 
   /**
    * Median total comp by gender, with each group's gap below the top-paid group.
-   * A simple, honest first cut at pay equity; a production version would compare
-   * within like-for-like role/level cohorts to control for role mix.
+   * Optionally sliced by department and/or level so the org can compare within a
+   * more like-for-like cohort (the honest way to reduce role-mix confounding).
+   * A production version would go further and control for geography, tenure, etc.
    */
-  payEquity(): PayEquityRow[] {
-    const stats = groupStats(this.repo.compRows(), (r) => r.gender);
+  payEquity(filter: { department?: string; level?: string } = {}): PayEquityRow[] {
+    let rows = this.repo.compRows();
+    if (filter.department) rows = rows.filter((r) => r.department === filter.department);
+    if (filter.level) rows = rows.filter((r) => r.level === filter.level);
+    const stats = groupStats(rows, (r) => r.gender);
     const topMedian = Math.max(0, ...stats.map((s) => s.medianCompUsd));
     return stats
       .map((s) => ({
