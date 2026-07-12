@@ -81,6 +81,13 @@ export function EmployeeFormModal({ opened, onClose, employee, onSaved }: Props)
   if (!reference.data) return null;
   const ref = reference.data;
 
+  // Reset transient form state (values + validation errors) when dismissing, so
+  // reopening never shows stale input from a previous session.
+  const handleClose = () => {
+    form.reset();
+    onClose();
+  };
+
   const handleSubmit = form.onSubmit(async (values) => {
     try {
       if (isEdit && employee) {
@@ -131,7 +138,7 @@ export function EmployeeFormModal({ opened, onClose, employee, onSaved }: Props)
   });
 
   return (
-    <Modal opened={opened} onClose={onClose} title={isEdit ? 'Edit employee' : 'Add employee'} size="lg">
+    <Modal opened={opened} onClose={handleClose} title={isEdit ? 'Edit employee' : 'Add employee'} size="lg">
       <form onSubmit={handleSubmit}>
         <Stack>
           <SimpleGrid cols={2}>
@@ -208,7 +215,7 @@ export function EmployeeFormModal({ opened, onClose, employee, onSaved }: Props)
           )}
 
           <Group justify="flex-end" mt="sm">
-            <Button variant="default" onClick={onClose}>
+            <Button variant="default" onClick={handleClose}>
               Cancel
             </Button>
             <Button type="submit" loading={create.isPending || update.isPending}>

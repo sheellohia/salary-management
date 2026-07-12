@@ -19,6 +19,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint (server + web)
+        run: npm run lint
+
       - name: Typecheck (server + web)
         run: npm run typecheck
 

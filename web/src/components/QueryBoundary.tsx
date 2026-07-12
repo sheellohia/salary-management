@@ -2,6 +2,7 @@ import { Alert, Center, Loader } from '@mantine/core';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
+import { ApiError } from '../api/client';
 
 interface QueryBoundaryProps<T> {
   query: UseQueryResult<T>;
@@ -19,9 +20,20 @@ export function QueryBoundary<T>({ query, children, height = 200 }: QueryBoundar
     );
   }
   if (query.isError) {
+    const err = query.error;
+    const isApi = err instanceof ApiError;
+    const notFound = isApi && err.status === 404;
     return (
-      <Alert color="red" icon={<IconAlertTriangle size={18} />} title="Could not load data">
-        {(query.error as Error).message}. Is the API running?
+      <Alert
+        color={notFound ? 'gray' : 'red'}
+        icon={<IconAlertTriangle size={18} />}
+        title={notFound ? 'Not found' : 'Could not load data'}
+      >
+        {notFound
+          ? (err as ApiError).message
+          : isApi
+            ? (err as ApiError).message
+            : `${(err as Error).message}. Is the API running?`}
       </Alert>
     );
   }

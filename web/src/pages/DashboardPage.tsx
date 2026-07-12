@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { BarChart } from '@mantine/charts';
-import { Badge, Card, SimpleGrid, Stack, Table, Text, Title } from '@mantine/core';
+import { Badge, Card, Group, Select, SimpleGrid, Stack, Table, Text, Title } from '@mantine/core';
 import { IconBuildingBank, IconChartHistogram, IconUsers, IconWorld } from '@tabler/icons-react';
 import {
   useByCountry,
@@ -8,10 +9,42 @@ import {
   useDistribution,
   useOverview,
   usePayEquity,
+  useReference,
 } from '../api/hooks';
+import type { GroupStat } from '../api/types';
 import { StatCard } from '../components/StatCard';
 import { QueryBoundary } from '../components/QueryBoundary';
 import { formatUsd, formatUsdCompact, humanize } from '../lib/format';
+
+/** Tabular breakdown: headcount / total / avg / median per group (USD). */
+function GroupStatTable({ rows, groupLabel }: { rows: GroupStat[]; groupLabel: string }) {
+  return (
+    <Table.ScrollContainer minWidth={420}>
+      <Table highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>{groupLabel}</Table.Th>
+            <Table.Th ta="right">Headcount</Table.Th>
+            <Table.Th ta="right">Total</Table.Th>
+            <Table.Th ta="right">Avg</Table.Th>
+            <Table.Th ta="right">Median</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {rows.map((r) => (
+            <Table.Tr key={r.key}>
+              <Table.Td>{r.key}</Table.Td>
+              <Table.Td ta="right">{r.headcount.toLocaleString()}</Table.Td>
+              <Table.Td ta="right">{formatUsdCompact(r.totalCompUsd)}</Table.Td>
+              <Table.Td ta="right">{formatUsd(r.avgCompUsd)}</Table.Td>
+              <Table.Td ta="right">{formatUsd(r.medianCompUsd)}</Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
+  );
+}
 
 function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
@@ -33,12 +66,18 @@ function bucketLabel(from: number, to: number | null): string {
 }
 
 export function DashboardPage() {
+  const [equityDept, setEquityDept] = useState<string | null>(null);
+  const [equityLevel, setEquityLevel] = useState<string | null>(null);
+  const reference = useReference();
   const overview = useOverview();
   const byCountry = useByCountry();
   const byDepartment = useByDepartment();
   const byLevel = useByLevel();
   const distribution = useDistribution();
-  const payEquity = usePayEquity();
+  const payEquity = usePayEquity({
+    department: equityDept || undefined,
+    level: equityLevel || undefined,
+  });
 
   return (
     <Stack gap="lg">
@@ -143,12 +182,48 @@ export function DashboardPage() {
         </ChartCard>
       </SimpleGrid>
 
+      <SimpleGrid cols={{ base: 1, lg: 2 }}>
+        <ChartCard title="By country" subtitle="Headcount, total, average and median compensation (USD)">
+          <QueryBoundary query={byCountry} height={200}>
+            {(rows) => <GroupStatTable rows={rows} groupLabel="Country" />}
+          </QueryBoundary>
+        </ChartCard>
+        <ChartCard title="By department" subtitle="Headcount, total, average and median compensation (USD)">
+          <QueryBoundary query={byDepartment} height={200}>
+            {(rows) => <GroupStatTable rows={rows} groupLabel="Department" />}
+          </QueryBoundary>
+        </ChartCard>
+      </SimpleGrid>
+
       <ChartCard
         title="Pay equity — median compensation by gender"
-        subtitle="First-cut view. Gap = % below the highest-paid group's median. A production version controls for role/level mix."
+        subtitle="Gap = % below the highest-paid group's median. Slice by department/level to compare a more like-for-like cohort; a production version would also control for geography and tenure."
       >
+        <Group mb="md" gap="sm">
+          <Select
+            placeholder="All departments"
+            clearable
+            data={reference.data?.departments ?? []}
+            value={equityDept}
+            onChange={setEquityDept}
+            w={200}
+            aria-label="Filter pay equity by department"
+          />
+          <Select
+            placeholder="All levels"
+            clearable
+            data={reference.data?.levels ?? []}
+            value={equityLevel}
+            onChange={setEquityLevel}
+            w={140}
+            aria-label="Filter pay equity by level"
+          />
+        </Group>
         <QueryBoundary query={payEquity} height={160}>
-          {(rows) => (
+          {(rows) =>
+            rows.length === 0 ? (
+              <Text c="dimmed">No employees match this slice.</Text>
+            ) : (
             <Table highlightOnHover>
               <Table.Thead>
                 <Table.Tr>
@@ -173,7 +248,8 @@ export function DashboardPage() {
                 ))}
               </Table.Tbody>
             </Table>
-          )}
+            )
+          }
         </QueryBoundary>
       </ChartCard>
     </Stack>

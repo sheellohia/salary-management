@@ -1,6 +1,7 @@
 import { Button, Group, Modal, NumberInput, Select, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
+import { useEffect } from 'react';
 import { useAddSalary, useReference } from '../api/hooks';
 import { ApiError } from '../api/client';
 import type { EmployeeDetail } from '../api/types';
@@ -29,6 +30,21 @@ export function SalaryFormModal({ opened, onClose, employee }: Props) {
     },
     validate: { baseAmount: (v) => (v > 0 ? null : 'Must be positive') },
   });
+
+  // Re-seed from the latest current salary whenever the modal opens, so a second
+  // raise starts from the up-to-date figures rather than stale initial values.
+  useEffect(() => {
+    if (opened) {
+      form.setValues({
+        baseAmount: current?.baseAmount ?? 0,
+        currency: current?.currency ?? 'USD',
+        bonusTargetPct: current?.bonusTargetPct ?? 0,
+        effectiveDate: today,
+        note: 'Merit increase',
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opened, current?.id, current?.baseAmount]);
 
   const handleSubmit = form.onSubmit(async (values) => {
     try {

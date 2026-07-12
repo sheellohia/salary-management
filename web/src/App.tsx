@@ -4,6 +4,7 @@ import { NavLink as RouterNavLink, Route, Routes } from 'react-router-dom';
 import { DashboardPage } from './pages/DashboardPage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { EmployeeDetailPage } from './pages/EmployeeDetailPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: IconChartBar, end: true },
@@ -43,6 +44,7 @@ export function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/employees" element={<EmployeesPage />} />
           <Route path="/employees/:id" element={<EmployeeDetailPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AppShell.Main>
     </AppShell>

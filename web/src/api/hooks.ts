@@ -97,6 +97,9 @@ export function useByLevel() {
 export function useDistribution() {
   return useQuery({ queryKey: ['analytics', 'distribution'], queryFn: () => http.get<DistributionBucket[]>('/analytics/distribution') });
 }
-export function usePayEquity() {
-  return useQuery({ queryKey: ['analytics', 'pay-equity'], queryFn: () => http.get<PayEquityRow[]>('/analytics/pay-equity') });
+export function usePayEquity(filter: { department?: string; level?: string } = {}) {
+  return useQuery({
+    queryKey: ['analytics', 'pay-equity', filter],
+    queryFn: () => http.get<PayEquityRow[]>(`/analytics/pay-equity${toQuery(filter)}`),
+  });
 }

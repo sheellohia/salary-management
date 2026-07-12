@@ -1,4 +1,5 @@
 import {
+  Alert,
   Anchor,
   Badge,
   Button,
@@ -13,8 +14,8 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconArrowLeft, IconEdit, IconPlus, IconUserOff } from '@tabler/icons-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { IconAlertTriangle, IconArrowLeft, IconEdit, IconPlus, IconUserOff } from '@tabler/icons-react';
+import { Link, useParams } from 'react-router-dom';
 import { useEmployee, useTerminateEmployee } from '../api/hooks';
 import { QueryBoundary } from '../components/QueryBoundary';
 import { EmployeeFormModal } from '../components/EmployeeFormModal';
@@ -34,8 +35,8 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 export function EmployeeDetailPage() {
   const { id } = useParams();
-  const employeeId = id ? Number(id) : undefined;
-  const navigate = useNavigate();
+  const parsed = Number(id);
+  const employeeId = id && Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
   const query = useEmployee(employeeId);
   const terminate = useTerminateEmployee();
   const [editOpened, edit] = useDisclosure(false);
@@ -54,10 +55,19 @@ export function EmployeeDetailPage() {
 
   return (
     <Stack gap="lg">
-      <Anchor onClick={() => navigate('/employees')} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+      <Anchor
+        component={Link}
+        to="/employees"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+      >
         <IconArrowLeft size={16} /> Back to employees
       </Anchor>
 
+      {!employeeId ? (
+        <Alert color="gray" icon={<IconAlertTriangle size={18} />} title="Employee not found">
+          “{id}” is not a valid employee id.
+        </Alert>
+      ) : (
       <QueryBoundary query={query} height={400}>
         {(e) => (
           <>
@@ -174,6 +184,7 @@ export function EmployeeDetailPage() {
           </>
         )}
       </QueryBoundary>
+      )}
     </Stack>
   );
 }

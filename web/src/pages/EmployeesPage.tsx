@@ -42,8 +42,12 @@ function SortHeader({
 }) {
   const Icon = active ? (dir === 'asc' ? IconChevronUp : IconChevronDown) : IconSelector;
   return (
-    <Table.Th ta={numeric ? 'right' : undefined}>
-      <UnstyledButton onClick={() => onSort(column)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+    <Table.Th ta={numeric ? 'right' : undefined} aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : undefined}>
+      <UnstyledButton
+        onClick={() => onSort(column)}
+        aria-label={`Sort by ${label}`}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+      >
         <Text fw={600} size="sm">
           {label}
         </Text>
@@ -187,7 +191,20 @@ export function EmployeesPage() {
                   </Table.Thead>
                   <Table.Tbody>
                     {data.items.map((e) => (
-                      <Table.Tr key={e.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/employees/${e.id}`)}>
+                      <Table.Tr
+                        key={e.id}
+                        style={{ cursor: 'pointer' }}
+                        role="link"
+                        tabIndex={0}
+                        aria-label={`Open ${fullName(e)}`}
+                        onClick={() => navigate(`/employees/${e.id}`)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            navigate(`/employees/${e.id}`);
+                          }
+                        }}
+                      >
                         <Table.Td>
                           <Text fw={500}>{fullName(e)}</Text>
                           <Text size="xs" c="dimmed">
