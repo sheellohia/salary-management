@@ -4,6 +4,8 @@ import { AnalyticsRepository } from '../repositories/analytics.repository.js';
 import { AnalyticsService } from './analytics.service.js';
 import { EmployeeService } from './employee.service.js';
 import { makeTestDb, employeeInput } from '../test/fixtures.js';
+import { toUsd, totalTargetCash } from '../domain/currency.js';
+import { EXCHANGE_RATES } from '../db/reference.js';
 
 /**
  * Fixed 4-employee org with hand-computable USD totals:
@@ -36,6 +38,13 @@ describe('AnalyticsService.overview', () => {
     expect(o.totalPayrollUsd).toBe(463_600); // 110k + 200k + 24k + 129.6k
     expect(o.avgCompUsd).toBe(115_900);
     expect(o.medianCompUsd).toBe(119_800); // avg of 110k and 129.6k
+  });
+
+  it('computes nearest-rank percentiles over sorted totals [24k,110k,129.6k,200k]', () => {
+    const o = analytics.overview();
+    expect(o.p25CompUsd).toBe(24_000); // rank ceil(0.25*4)=1
+    expect(o.p75CompUsd).toBe(129_600); // rank ceil(0.75*4)=3
+    expect(o.p90CompUsd).toBe(200_000); // rank ceil(0.90*4)=4
   });
 });
 
@@ -81,5 +90,66 @@ describe('analytics exclude terminated employees', () => {
     employees.terminate(created.id);
     expect(analytics.overview().headcount).toBe(4);
     expect(analytics.overview().totalPayrollUsd).toBe(463_600);
+  });
+});
+
+describe('SQL money math matches the pure domain helpers', () => {
+  it('SQL-computed totalCompUsd equals toUsd(totalTargetCash(...))', () => {
+    const rates = Object.fromEntries(EXCHANGE_RATES.map((r) => [r.currency, r.rateToUsd]));
+    const repo = new AnalyticsRepository(db);
+    // DE employee: 100k EUR + 20% bonus. The SQL path (CASE expression) must agree
+    // with the tested pure helpers so the two money-math implementations can't drift.
+    const de = repo.compRows().find((r) => r.currency === 'EUR')!;
+    const expected = toUsd(totalTargetCash(100_000, 20), 'EUR', rates);
+    expect(de.totalCompUsd).toBeCloseTo(expected, 2); // 120,000 * 1.08 = 129,600
+    expect(de.totalCompUsd).toBe(129_600);
+  });
+});
+
+describe('AnalyticsService.payEquity slicing', () => {
+  it('narrows to a department/level cohort', () => {
+    // Base fixture has 2 US Engineering (female 110k, male 200k) — slice to it.
+    const rows = analytics.payEquity({ department: 'Engineering' });
+    const total = rows.reduce((s, r) => s + r.headcount, 0);
+    expect(total).toBe(2);
+    expect(rows.map((r) => r.gender).sort()).toEqual(['female', 'male']);
+  });
+});
+
+describe('AnalyticsService.distribution edges', () => {
+  function dbWith(comps: number[]) {
+    const fresh = makeTestDb();
+    const svc = new EmployeeService(fresh);
+    comps.forEach((c, i) =>
+      svc.create(employeeInput({ email: `d${i}@acme.com`, employeeCode: `D${i}`, salary: { baseAmount: c, currency: 'USD', bonusTargetPct: 0, effectiveDate: '2022-01-01' } })),
+    );
+    return new AnalyticsService(new AnalyticsRepository(fresh));
+  }
+
+  it('places a comp exactly on a boundary into the upper bucket', () => {
+    const buckets = dbWith([25_000]).distribution();
+    expect(buckets[0]!.count).toBe(0); // [0,25k)
+    expect(buckets[1]!.count).toBe(1); // [25k,50k)
+  });
+
+  it('clamps very high comp into the open-ended final bucket', () => {
+    const buckets = dbWith([1_000_000]).distribution();
+    expect(buckets[9]!.to).toBeNull();
+    expect(buckets[9]!.count).toBe(1);
+  });
+});
+
+describe('AnalyticsService on an empty org', () => {
+  it('returns zeroed structures without throwing', () => {
+    const empty = new AnalyticsService(new AnalyticsRepository(makeTestDb()));
+    const o = empty.overview();
+    expect(o.headcount).toBe(0);
+    expect(o.totalPayrollUsd).toBe(0);
+    expect(o.medianCompUsd).toBe(0);
+    expect(empty.byCountry()).toEqual([]);
+    expect(empty.payEquity()).toEqual([]);
+    const buckets = empty.distribution();
+    expect(buckets).toHaveLength(10);
+    expect(buckets.every((b) => b.count === 0)).toBe(true);
   });
 });

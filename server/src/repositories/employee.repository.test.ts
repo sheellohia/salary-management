@@ -76,4 +76,38 @@ describe('list: filtering, search, sorting and pagination', () => {
     const page2 = repo.list({ ...base, pageSize: 2, page: 2 });
     expect(page2.items).toHaveLength(1);
   });
+
+  it('excludes terminated employees only when status=active is requested', () => {
+    const bob = repo.list({ ...base, search: 'bob@acme.com' }).items[0]!;
+    service.terminate(bob.id);
+    expect(repo.list({ ...base, status: 'active' }).total).toBe(2);
+    expect(repo.list({ ...base }).total).toBe(3); // no status filter -> all
+    expect(repo.list({ ...base, status: 'terminated' }).total).toBe(1);
+  });
+});
+
+describe('list: employees without a salary sort last (NULLS LAST)', () => {
+  it('places null totalCompUsd after real values when sorting desc', () => {
+    // Create an employee directly via the repo so they have NO salary row.
+    repo.create({
+      employeeCode: 'NOSAL',
+      firstName: 'No',
+      lastName: 'Salary',
+      email: 'nosal@acme.com',
+      country: 'US',
+      department: 'Engineering',
+      jobTitle: 'Intern',
+      level: 'L1',
+      employmentType: 'full_time',
+      gender: 'undisclosed',
+      managerId: null,
+      hireDate: '2024-01-01',
+    });
+    service.create(employeeInput({ email: 'paid@acme.com', employeeCode: 'PAID', salary: { baseAmount: 90_000, currency: 'USD', bonusTargetPct: 0, effectiveDate: '2022-01-01' } }));
+
+    const result = repo.list({ page: 1, pageSize: 25, sortBy: 'totalCompUsd', sortDir: 'desc' });
+    const last = result.items[result.items.length - 1]!;
+    expect(last.employeeCode).toBe('NOSAL');
+    expect(last.totalCompUsd).toBeNull();
+  });
 });

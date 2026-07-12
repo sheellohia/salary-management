@@ -29,7 +29,14 @@ beforeEach(() => {
   app = createApp(db);
 });
 
-afterEach(() => db.close());
+afterEach(() => {
+  // One test closes the db mid-run to exercise the 500 path; closing twice throws.
+  try {
+    db.close();
+  } catch {
+    /* already closed */
+  }
+});
 
 describe('GET /api/health', () => {
   it('returns ok', async () => {
@@ -127,6 +134,53 @@ describe('salary changes and lifecycle', () => {
     const res = await request(app).delete(`/api/employees/${id}`);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('terminated');
+  });
+});
+
+describe('input validation and error mapping', () => {
+  it('rejects a non-existent managerId with 400 (not 500)', async () => {
+    const res = await request(app)
+      .post('/api/employees')
+      .send({ ...validEmployee, managerId: 999999 });
+    expect(res.status).toBe(400);
+    expect(res.body.error.message).toMatch(/manager/i);
+  });
+
+  it('rejects a non-calendar date with 400', async () => {
+    const res = await request(app)
+      .post('/api/employees')
+      .send({ ...validEmployee, hireDate: '2026-13-45' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('maps malformed JSON to 400 BAD_REQUEST (not 500)', async () => {
+    const res = await request(app)
+      .post('/api/employees')
+      .set('Content-Type', 'application/json')
+      .send('{ "firstName": '); // truncated JSON
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('BAD_REQUEST');
+  });
+
+  it('maps an oversized body to 413 PAYLOAD_TOO_LARGE', async () => {
+    const huge = { ...validEmployee, jobTitle: 'x'.repeat(1_100_000) };
+    const res = await request(app).post('/api/employees').send(huge);
+    expect(res.status).toBe(413);
+    expect(res.body.error.code).toBe('PAYLOAD_TOO_LARGE');
+  });
+
+  it('returns a JSON 404 for an unknown /api route', async () => {
+    const res = await request(app).get('/api/does-not-exist');
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatchObject({ code: 'NOT_FOUND', message: 'Route not found' });
+  });
+
+  it('surfaces an unexpected repository failure as 500 INTERNAL', async () => {
+    db.close(); // any query now throws a generic (non-AppError) error
+    const res = await request(app).get('/api/analytics/overview');
+    expect(res.status).toBe(500);
+    expect(res.body.error.code).toBe('INTERNAL');
   });
 });
 
