@@ -1,0 +1,19 @@
+# One-click deploy to Render (https://render.com) as a single Docker web service.
+# The container serves the API + the built SPA and seeds SQLite on first boot.
+services:
+  - type: web
+    name: acme-salary-management
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: '4000'
+      - key: DATABASE_PATH
+        value: /data/salary.db
+    disk:
+      # Persist the SQLite database across deploys/restarts.
+      name: salary-data
+      mountPath: /data
+      sizeGB: 1

@@ -4,7 +4,8 @@ import { config } from './config.js';
 import { logger } from './logger.js';
 
 const db = getDatabase();
-const app = createApp(db);
+// In production the built SPA is served by the same process (single container).
+const app = createApp(db, { webDistPath: process.env.WEB_DIST_PATH });
 
 const server = app.listen(config.port, () => {
   logger.info(`Salary Management API listening on http://localhost:${config.port}`);

@@ -1,0 +1,17 @@
+# Single-container stack: the API serves the built React SPA and its own SQLite
+# database. `docker compose up --build` gives a fully working app on :4000.
+services:
+  app:
+    build: .
+    ports:
+      - '4000:4000'
+    environment:
+      PORT: '4000'
+      LOG_LEVEL: info
+    volumes:
+      # Persist the SQLite database across container restarts.
+      - salary-data:/app/server/data
+    restart: unless-stopped
+
+volumes:
+  salary-data:
