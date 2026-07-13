@@ -28,4 +28,9 @@ COPY --from=build /app/web/dist ./web/dist
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 4000
+# Report container health via the readiness endpoint. Node 20 has a global fetch,
+# so no curl/wget is needed in the slim image. Generous start-period covers the
+# first-boot seed.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
+  CMD node -e "fetch('http://localhost:'+(process.env.PORT||4000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 ENTRYPOINT ["docker-entrypoint.sh"]
