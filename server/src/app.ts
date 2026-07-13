@@ -1,6 +1,7 @@
 import path from 'node:path';
 import express, { type Express } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import type { DB } from './db/connection.js';
 import { logger } from './logger.js';
@@ -21,6 +22,10 @@ export interface AppOptions {
  */
 export function createApp(db: DB, options: AppOptions = {}): Express {
   const app = express();
+  // Baseline security headers (HSTS, nosniff, frameguard, etc.). CSP is left off:
+  // configuring a correct policy for the bundled SPA is out of scope and a wrong
+  // one silently breaks the UI — the other headers are the cheap, safe win.
+  app.use(helmet({ contentSecurityPolicy: false }));
   // Structured request logging (method/path/status/latency). The shared logger is
   // disabled under NODE_ENV=test, so this is silent in the test suite. Health
   // checks are skipped to keep logs signal-rich.
@@ -30,10 +35,28 @@ export function createApp(db: DB, options: AppOptions = {}): Express {
       autoLogging: { ignore: (req) => req.url === '/api/health' },
     }),
   );
-  app.use(cors());
+  // Echo the per-request id (set by pino-http) so a user-reported error can be
+  // traced back to a specific log line.
+  app.use((req, res, next) => {
+    res.setHeader('X-Request-Id', String((req as { id?: unknown }).id ?? ''));
+    next();
+  });
+  // CORS: same-origin in the single-container prod build, so this only matters for
+  // the split dev setup. Restrict via CORS_ORIGIN (comma-separated) if desired.
+  const corsOrigin = process.env.CORS_ORIGIN;
+  app.use(cors(corsOrigin ? { origin: corsOrigin.split(',').map((o) => o.trim()) } : {}));
   app.use(express.json({ limit: '1mb' }));
 
-  app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+  // Readiness probe: actually touches the DB so an unreachable/broken database
+  // reports unhealthy (503) instead of a misleading 200.
+  app.get('/api/health', (_req, res) => {
+    try {
+      db.prepare('SELECT 1').get();
+      res.json({ status: 'ok', uptimeSeconds: Math.round(process.uptime()) });
+    } catch {
+      res.status(503).json({ status: 'degraded', reason: 'database unavailable' });
+    }
+  });
   app.use('/api/employees', employeesRouter(db));
   app.use('/api/analytics', analyticsRouter(db));
   app.use('/api/reference', referenceRouter(db));

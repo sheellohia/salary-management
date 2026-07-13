@@ -19,16 +19,19 @@ export function notFoundHandler(_req: Request, res: Response): void {
 /** Central error handler: normalizes Zod, AppError, and unexpected errors. */
 export function errorHandler(
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ): void {
+  // Correlate error responses with their log line (pino-http sets req.id).
+  const requestId = String((req as { id?: unknown }).id ?? '') || undefined;
   if (err instanceof ZodError) {
     res.status(400).json({
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Request validation failed',
         details: err.flatten(),
+        requestId,
       },
     });
     return;
@@ -36,7 +39,7 @@ export function errorHandler(
   if (err instanceof AppError) {
     res
       .status(err.status)
-      .json({ error: { code: err.code, message: err.message, details: err.details } });
+      .json({ error: { code: err.code, message: err.message, details: err.details, requestId } });
     return;
   }
   // body-parser / http-errors set a numeric status and `expose` for client faults
@@ -46,11 +49,11 @@ export function errorHandler(
   if (status) {
     const code = status === 413 ? 'PAYLOAD_TOO_LARGE' : 'BAD_REQUEST';
     const message = err instanceof Error ? err.message : 'Bad request';
-    res.status(status).json({ error: { code, message } });
+    res.status(status).json({ error: { code, message, requestId } });
     return;
   }
-  logger.error({ err }, 'Unhandled error');
-  res.status(500).json({ error: { code: 'INTERNAL', message: 'Internal server error' } });
+  logger.error({ err, requestId }, 'Unhandled error');
+  res.status(500).json({ error: { code: 'INTERNAL', message: 'Internal server error', requestId } });
 }
 
 /** Returns a client-error status (4xx) for exposed body-parser/http-errors, else null. */

@@ -56,10 +56,11 @@ Open **http://localhost:4000**.
 ## Tests
 
 ```bash
-npm test                        # backend suite (66 tests, deterministic, sub-second)
-npm run test --workspace web    # frontend suite (23 tests)
-npm run lint                    # eslint, server + web
-npm run typecheck               # server + web
+npm test                            # backend suite (68 tests, deterministic, sub-second)
+npm run test --workspace web        # frontend suite (23 tests)
+npm run test:coverage --workspace server   # coverage report (v8)
+npm run lint                        # eslint, server + web
+npm run typecheck                   # server + web
 ```
 
 Backend tests run against **in-memory SQLite** with fixed fixtures — fast and
@@ -72,7 +73,7 @@ Base URL `/api`.
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/health` | Liveness check |
+| GET | `/health` | Readiness check — touches the DB; 503 if unavailable |
 | GET | `/employees` | List — `page`, `pageSize`, `sortBy`, `sortDir`, `search`, `country`, `department`, `level`, `status` |
 | POST | `/employees` | Create employee + opening salary |
 | GET | `/employees/:id` | Detail incl. salary history |
@@ -127,6 +128,7 @@ seeds 10,000 employees, serves the API and the SPA, and passes `/api/health`.
 
 - [Requirements](./docs/REQUIREMENTS.md) — goal, scope, explicit non-goals
 - [Architecture](./docs/ARCHITECTURE.md) — layering, data model, diagram
+- [Engineering notes](./docs/ENGINEERING_NOTES.md) — tools & reasoning, trade-offs, scaling roadmap
 - [ADRs](./docs/adr) — the notable decisions and their reasoning
 - [Trade-offs & performance](./docs/TRADEOFFS.md)
 - [AI usage](./docs/AI_USAGE.md)

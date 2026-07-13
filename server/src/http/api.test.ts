@@ -39,10 +39,24 @@ afterEach(() => {
 });
 
 describe('GET /api/health', () => {
-  it('returns ok', async () => {
+  it('returns ok with uptime when the DB is reachable', async () => {
     const res = await request(app).get('/api/health');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body.status).toBe('ok');
+    expect(typeof res.body.uptimeSeconds).toBe('number');
+  });
+
+  it('reports 503 degraded when the DB is unavailable', async () => {
+    db.close();
+    const res = await request(app).get('/api/health');
+    expect(res.status).toBe(503);
+    expect(res.body.status).toBe('degraded');
+  });
+
+  it('sets security headers and echoes a request id', async () => {
+    const res = await request(app).get('/api/health');
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers).toHaveProperty('x-request-id');
   });
 });
 
