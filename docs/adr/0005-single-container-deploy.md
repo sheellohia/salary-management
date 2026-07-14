@@ -11,10 +11,13 @@ host, without standing up a separate CDN/reverse-proxy for an assessment.
 ## Decision
 
 In production, the **Express process also serves the built SPA** (via
-`WEB_DIST_PATH`) on one port, with SQLite on a mounted volume seeded on first
-boot. Ship one multi-stage `Dockerfile`; provide `docker-compose.yml` and a
-`render.yaml` for one-click hosting. In development the two run separately with a
-Vite dev proxy (`/api → :4000`).
+`WEB_DIST_PATH`) on one port, with SQLite seeded on first boot. Ship one
+multi-stage `Dockerfile`; provide `docker-compose.yml` (persistent named volume)
+and a `render.yaml` for one-click hosting. The `render.yaml` targets Render's
+free plan — no disk, so SQLite is re-seeded (deterministically) on each cold
+start; a one-line switch to the `starter` plan plus a disk gives persistent data
+(documented inline). In development the two run separately with a Vite dev proxy
+(`/api → :4000`).
 
 ## Rationale
 

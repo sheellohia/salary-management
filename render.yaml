@@ -1,19 +1,27 @@
 # One-click deploy to Render (https://render.com) as a single Docker web service.
 # The container serves the API + the built SPA and seeds SQLite on first boot.
+#
+# Configured for Render's FREE plan: no persistent disk, so the SQLite database
+# lives in ephemeral container storage and is re-seeded (deterministically, in a
+# few seconds) on every cold start. That's fine for a demo. For always-on hosting
+# with data that survives restarts, switch `plan` to `starter` and add a disk:
+#
+#     plan: starter
+#     disk:
+#       name: salary-data
+#       mountPath: /data
+#       sizeGB: 1
+#
+# then set DATABASE_PATH to /data/salary.db so the DB lands on the mounted disk.
 services:
   - type: web
     name: acme-salary-management
     runtime: docker
     dockerfilePath: ./Dockerfile
-    plan: starter
+    plan: free
     healthCheckPath: /api/health
     envVars:
       - key: PORT
         value: '4000'
       - key: DATABASE_PATH
         value: /data/salary.db
-    disk:
-      # Persist the SQLite database across deploys/restarts.
-      name: salary-data
-      mountPath: /data
-      sizeGB: 1

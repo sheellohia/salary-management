@@ -116,13 +116,18 @@ Ships as a **single container** (API serves the built SPA; SQLite on a volume,
 seeded on first boot). The image has been built and run end-to-end: it boots,
 seeds 10,000 employees, serves the API and the SPA, and passes `/api/health`.
 
-- **Docker**: `docker compose up --build` → http://localhost:4000
+- **Docker**: `docker compose up --build` → http://localhost:4000 (persistent
+  volume; data survives restarts)
 - **Render**: the included [`render.yaml`](./render.yaml) provisions a Docker web
-  service with a persistent disk and `/api/health` health check.
+  service with an `/api/health` health check. It targets Render's **free** plan,
+  so SQLite lives in ephemeral storage and is re-seeded on each cold start; flip
+  `plan` to `starter` and add a disk (see the comment in `render.yaml`) for
+  always-on hosting with persistent data.
 
-> **Live URL:** `<add your deployed URL here>` — deploy with either command above
-> (Render is one click from this repo). No live instance is committed to the repo
-> by default so there are no credentials or hosting costs baked in.
+> **Live URL:** `<add your deployed URL here>` — deploy via **New → Blueprint** on
+> [Render](https://dashboard.render.com) pointed at this repo (it reads
+> `render.yaml`), or with either command above. No live instance is committed to
+> the repo by default so there are no credentials or hosting costs baked in.
 
 ## Documentation
 
