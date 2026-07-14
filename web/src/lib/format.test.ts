@@ -6,6 +6,10 @@ describe('formatUsdCompact', () => {
     expect(formatUsdCompact(1_250_000)).toBe('$1.3M');
     expect(formatUsdCompact(84_000)).toBe('$84K');
   });
+  it('strips a redundant trailing .0 for stability across ICU builds', () => {
+    expect(formatUsdCompact(2_000_000)).toBe('$2M');
+    expect(formatUsdCompact(500)).toBe('$500');
+  });
   it('renders a dash for null/undefined', () => {
     expect(formatUsdCompact(null)).toBe('—');
     expect(formatUsdCompact(undefined)).toBe('—');

@@ -1,14 +1,21 @@
 /** Formatting helpers shared across the UI. Pure and unit-tested. */
 
-/** Compact USD, e.g. 1_250_000 -> "$1.3M", 84_000 -> "$84.0K". */
+/**
+ * Compact USD, e.g. 1_250_000 -> "$1.3M", 84_000 -> "$84K".
+ *
+ * `Intl` with `maximumFractionDigits: 1` renders "$84.0K" on some ICU builds
+ * and "$84K" on others, so we strip a redundant trailing ".0" to keep the
+ * output stable across Node/ICU versions (and the tests deterministic).
+ */
 export function formatUsdCompact(value: number | null | undefined): string {
   if (value === null || value === undefined) return '—';
-  return new Intl.NumberFormat('en-US', {
+  const formatted = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     notation: 'compact',
     maximumFractionDigits: 1,
   }).format(value);
+  return formatted.replace(/\.0(\D*)$/, '$1');
 }
 
 /** Full USD with no decimals, e.g. "$84,000". */
