@@ -10,7 +10,7 @@ engineering judgment over maximal complexity.*
   and current-salary resolution are the things that are embarrassing to get
   wrong. They live in small pure/DI'd units with hand-computable tests.
 - **Fast, deterministic tests.** In-memory SQLite + fixed seeds → the whole
-  backend suite (66 tests) runs in well under a second with no flakiness.
+  backend suite (68 tests) runs in well under a second with no flakiness.
 - **Readability & a clean seam for growth.** Strict layering means each future
   change (Postgres, auth, audit) has one obvious place to land.
 

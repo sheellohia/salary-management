@@ -59,7 +59,7 @@ Open **http://localhost:4000**.
 
 ```bash
 npm test                            # backend suite (68 tests, deterministic, sub-second)
-npm run test --workspace web        # frontend suite (23 tests)
+npm run test --workspace web        # frontend suite (24 tests)
 npm run test:coverage --workspace server   # coverage report (v8)
 npm run lint                        # eslint, server + web
 npm run typecheck                   # server + web
