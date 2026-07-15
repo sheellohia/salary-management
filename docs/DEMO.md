@@ -1,5 +1,8 @@
 # Demo
 
+> **Live app:** https://acme-salary-management-obsl.onrender.com
+> (free-tier host — the first request after idle can take ~50s to wake).
+>
 > **Video:** _add link here_ (e.g. Loom / YouTube unlisted). Record the
 > click-through below — it runs ~2–3 minutes.
 

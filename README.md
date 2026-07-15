@@ -5,6 +5,8 @@ It replaces spreadsheets for the **HR Manager**: manage employee & salary
 records, and answer *how the org pays people* — across countries, departments,
 levels, and currencies (all normalized to USD).
 
+**Live demo:** https://acme-salary-management-obsl.onrender.com *(free-tier host — first request after idle may take ~50s to wake)*
+
 > Built for a product-framing engineering assessment. The emphasis is sound
 > judgment: clean layering, meaningful fast tests, honest scope. See
 > [`docs/`](./docs) for the requirements, architecture, ADRs, trade-offs and
@@ -124,10 +126,14 @@ seeds 10,000 employees, serves the API and the SPA, and passes `/api/health`.
   `plan` to `starter` and add a disk (see the comment in `render.yaml`) for
   always-on hosting with persistent data.
 
-> **Live URL:** `<add your deployed URL here>` — deploy via **New → Blueprint** on
+> **Live URL:** **https://acme-salary-management-obsl.onrender.com**
+> (health: [`/api/health`](https://acme-salary-management-obsl.onrender.com/api/health)).
+> Hosted on Render's free plan — the instance spins down when idle, so the first
+> request after a period of inactivity can take ~50s to wake, then it's snappy.
+>
+> To deploy your own: **New → Blueprint** on
 > [Render](https://dashboard.render.com) pointed at this repo (it reads
-> `render.yaml`), or with either command above. No live instance is committed to
-> the repo by default so there are no credentials or hosting costs baked in.
+> `render.yaml`), or run either command above.
 
 ## Documentation
 
