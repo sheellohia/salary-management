@@ -143,6 +143,7 @@ seeds 10,000 employees, serves the API and the SPA, and passes `/api/health`.
 - [ADRs](./docs/adr) — the notable decisions and their reasoning
 - [Trade-offs & performance](./docs/TRADEOFFS.md)
 - [AI usage](./docs/AI_USAGE.md)
+- [Demo walkthrough](./docs/DEMO.md) & [spoken recording script](./docs/DEMO_SCRIPT.md)
 
 ## Demo
 

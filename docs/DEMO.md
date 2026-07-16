@@ -7,6 +7,9 @@ workflow end to end **and** narrates the engineering underneath each screen.
 >
 > A live instance is also deployed (see the README), but this script is written
 > for a **local** run so nothing depends on a free-tier host waking up mid-demo.
+>
+> **Recording it?** See [`DEMO_SCRIPT.md`](./DEMO_SCRIPT.md) — a spoken,
+> timed 2.5–3 min script (what to show + what to say).
 
 ---
 
