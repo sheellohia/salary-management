@@ -6,6 +6,7 @@ records, and answer *how the org pays people* — across countries, departments,
 levels, and currencies (all normalized to USD).
 
 **Live demo:** https://acme-salary-management-obsl.onrender.com *(free-tier host — first request after idle may take ~50s to wake)*
+· **Video walkthrough:** https://www.loom.com/share/0be06258d50b4600983e8def0bcc913e
 
 > Built for a product-framing engineering assessment. The emphasis is sound
 > judgment: clean layering, meaningful fast tests, honest scope. See
@@ -143,14 +144,15 @@ seeds 10,000 employees, serves the API and the SPA, and passes `/api/health`.
 - [ADRs](./docs/adr) — the notable decisions and their reasoning
 - [Trade-offs & performance](./docs/TRADEOFFS.md)
 - [AI usage](./docs/AI_USAGE.md)
-- [Demo walkthrough](./docs/DEMO.md) & [spoken recording script](./docs/DEMO_SCRIPT.md)
+- [Demo walkthrough](./docs/DEMO.md)
 
 ## Demo
 
-[`docs/DEMO.md`](./docs/DEMO.md) has a ready-to-record walkthrough script and a
-30-second local run. The flow: dashboard → filter employees → open an employee →
-record a raise → watch the analytics update. Add a recorded video link at the top
-of `docs/DEMO.md` when you record it.
+**Video walkthrough:** https://www.loom.com/share/0be06258d50b4600983e8def0bcc913e
+
+[`docs/DEMO.md`](./docs/DEMO.md) has the walkthrough and a 30-second local run.
+The flow: dashboard → filter employees → open an employee → record a raise →
+watch the analytics update.
 
 ## License
 

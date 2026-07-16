@@ -3,13 +3,10 @@
 A ~3–4 minute walkthrough you can record locally. It shows the HR-manager
 workflow end to end **and** narrates the engineering underneath each screen.
 
-> **Video:** _add link here_ (e.g. Loom / YouTube unlisted).
+> **Video:** https://www.loom.com/share/0be06258d50b4600983e8def0bcc913e
 >
 > A live instance is also deployed (see the README), but this script is written
 > for a **local** run so nothing depends on a free-tier host waking up mid-demo.
->
-> **Recording it?** See [`DEMO_SCRIPT.md`](./DEMO_SCRIPT.md) — a spoken,
-> timed 2.5–3 min script (what to show + what to say).
 
 ---
 
